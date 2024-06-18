@@ -20,6 +20,7 @@ export default function TimeTableScreen() {
     React.useState<string>('嘉義')
   const [endingStationTmp, setEndingStationTmp] = React.useState<string>('祝山')
   const [isModalVisible, setIsModalVisible] = React.useState<boolean>(false)
+  const [direction, setDirection] = React.useState(0)
 
   const stationNames = [
     '嘉義',
@@ -38,6 +39,21 @@ export default function TimeTableScreen() {
     '沼平',
     '祝山',
   ]
+  const stationMap: { [key: string]: number } = stationNames.reduce(
+    (acc, name, index) => {
+      acc[name] = index
+      return acc
+    },
+    {} as { [key: string]: number }
+  )
+  React.useEffect(() => {
+    const startingStationNumber = stationMap[startingStation]
+    const endingStationNumber = stationMap[endingStation]
+
+    const newDirection = endingStationNumber < startingStationNumber ? 1 : 0
+    setDirection(newDirection)
+  }, [startingStation, endingStation])
+
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible)
   }
@@ -101,6 +117,7 @@ export default function TimeTableScreen() {
                 params: {
                   startingStation: startingStation,
                   endingStation: endingStation,
+                  direction: direction,
                 },
               })
             }}
