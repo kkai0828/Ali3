@@ -11,98 +11,9 @@ import {
 import { Picker } from '@react-native-picker/picker'
 import { Text, View } from '@/components/Themed'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
+import { useRouter } from 'expo-router'
 
-interface AuthResponse {
-  access_token: string
-  token_type: string
-  expires_in: number
-  scope: string
-}
-
-async function GetAuthorizationHeader(): Promise<AuthResponse | undefined> {
-  const parameter = new URLSearchParams({
-    grant_type: 'client_credentials',
-    client_id: 'sssun-09d597db-5ec8-446e',
-    client_secret: '8ffe4bd6-dc2e-40e1-8f9e-2c5d62e13ab1',
-  })
-
-  const auth_url =
-    'https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token'
-
-  try {
-    const response = await fetch(auth_url, {
-      method: 'POST',
-      headers: {
-        'Accept-Encoding': 'br,gzip',
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: parameter.toString(),
-    })
-
-    if (response.ok) {
-      const data: AuthResponse = await response.json()
-      return data
-    } else {
-      console.error('Authorization Error:', response.statusText)
-    }
-  } catch (error) {
-    console.error('Authorization Error:', error)
-  }
-}
-
-async function GetApiResponse(
-  accesstoken: AuthResponse | undefined,
-  setData: Function
-): Promise<void> {
-  if (!accesstoken) {
-    console.error('No access token found')
-    return
-  }
-
-  try {
-    const response = await fetch(
-      'https://tdx.transportdata.tw/api/basic/v3/Rail/AFR/GeneralTrainTimetable',
-      {
-        method: 'GET',
-        headers: {
-          Authorization: 'Bearer ' + accesstoken.access_token,
-          'Accept-Encoding': 'br,gzip',
-        },
-      }
-    )
-
-    if (response.ok) {
-      const data = await response.json()
-      const timetable = data['TrainTimetables']
-      const schedules = timetable.reduce((acc: any, schedule: any) => {
-        schedule.StopTimes.forEach((stop: any) => {
-          if (!acc[stop.StationID]) {
-            acc[stop.StationID] = {
-              StationName: stop.StationName,
-              Times: [],
-            }
-          }
-          acc[stop.StationID].Times.push({
-            TrainNo: schedule.TrainNo,
-            StopSequence: stop.StopSequence,
-            ArrivalTime: stop.ArrivalTime,
-            DepartureTime: stop.DepartureTime,
-          })
-        })
-        return acc
-      }, {})
-      console.log('API Response:', schedules)
-      setData(schedules)
-      // 在這裡處理數據，設置狀態或顯示在界面上
-    } else {
-      console.error('API Response Error:', response.statusText)
-    }
-  } catch (error) {
-    console.error('API Response Error:', error)
-  }
-}
 export default function TimeTableScreen() {
-  const [data, setData] = React.useState<any>(null)
   const [startingStation, setStartingStation] = React.useState<string>('嘉義')
   const [endingStation, setEndingStation] = React.useState<string>('祝山')
   const [startingStationTmp, setStartingStationTmp] =
@@ -110,16 +21,23 @@ export default function TimeTableScreen() {
   const [endingStationTmp, setEndingStationTmp] = React.useState<string>('祝山')
   const [isModalVisible, setIsModalVisible] = React.useState<boolean>(false)
 
-  React.useEffect(() => {
-    async function fetchData() {
-      const token = await GetAuthorizationHeader()
-      await GetApiResponse(token, setData)
-    }
-    fetchData()
-  }, [])
-  const stationNames = data
-    ? Object.values(data).map((station: any) => station.StationName)
-    : []
+  const stationNames = [
+    '嘉義',
+    '北門',
+    '竹崎',
+    '樟腦寮',
+    '獨立山',
+    '梨園寮',
+    '交力坪',
+    '水社寮',
+    '奮起湖',
+    '多林',
+    '十字路',
+    '神木',
+    '阿里山',
+    '沼平',
+    '祝山',
+  ]
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible)
   }
@@ -128,6 +46,7 @@ export default function TimeTableScreen() {
     setStartingStation(endingStation)
     setEndingStation(tmp)
   }
+  const router = useRouter()
   return (
     <>
       <ScrollView
@@ -174,6 +93,20 @@ export default function TimeTableScreen() {
               </Pressable>
             </View>
           </View>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              router.navigate({
+                pathname: './result',
+                params: {
+                  startingStation: startingStation,
+                  endingStation: endingStation,
+                },
+              })
+            }}
+          >
+            <Text style={styles.buttonText}>查詢</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
       {isModalVisible && (
@@ -225,8 +158,8 @@ export default function TimeTableScreen() {
                 {stationNames.map((stationName: any, index: number) => (
                   <Picker.Item
                     key={index}
-                    label={stationName.Zh_tw}
-                    value={stationName.Zh_tw}
+                    label={stationName}
+                    value={stationName}
                   />
                 ))}
               </Picker>
@@ -249,8 +182,8 @@ export default function TimeTableScreen() {
                 {stationNames.map((stationName: any, index: number) => (
                   <Picker.Item
                     key={index}
-                    label={stationName.Zh_tw}
-                    value={stationName.Zh_tw}
+                    label={stationName}
+                    value={stationName}
                   />
                 ))}
               </Picker>
@@ -267,7 +200,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   infoBox: {
-    height: Dimensions.get('screen').height * 0.5,
+    height: Dimensions.get('screen').height * 0.2,
     width: '90%',
     borderRadius: 15,
     shadowColor: 'rgba(0,0,0,0.25)', // Shadow color
@@ -310,10 +243,18 @@ const styles = StyleSheet.create({
     height: 1,
     width: '80%',
   },
+  button: {
+    marginHorizontal: '8%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#28B67E',
+    height: 35,
+    borderRadius: 5,
+  },
   buttonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '500',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
 })

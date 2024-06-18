@@ -1,7 +1,7 @@
 import React from 'react'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
-import { Link, Tabs } from 'expo-router'
-import { Pressable } from 'react-native'
+import { Link, Tabs, useRouter } from 'expo-router'
+import { Pressable, TouchableOpacity } from 'react-native'
 
 import Colors from '@/constants/Colors'
 import { useColorScheme } from '@/components/useColorScheme'
@@ -17,6 +17,7 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme()
+  const router = useRouter()
 
   return (
     <Tabs
@@ -44,20 +45,6 @@ export default function TabLayout() {
           title: '時刻表',
           tabBarIcon: ({ color }) => <TabBarIcon name="train" color={color} />,
           tabBarLabel: '',
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
         }}
       />
       <Tabs.Screen
@@ -66,6 +53,33 @@ export default function TabLayout() {
           title: '目前天氣',
           tabBarLabel: '',
           tabBarIcon: ({ color }) => <TabBarIcon name="sun-o" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="result"
+        options={{
+          title: '查詢結果',
+          href: null,
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 40,
+                left: '10%',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              onPress={() => router.navigate('./../')}
+            >
+              <FontAwesome
+                name="angle-left"
+                size={30}
+                color="black"
+                style={{ marginRight: 2 }}
+              />
+            </TouchableOpacity>
+          ),
         }}
       />
     </Tabs>
