@@ -1,7 +1,7 @@
 import React from 'react'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { Link, Tabs, useRouter } from 'expo-router'
-import { Pressable, TouchableOpacity } from 'react-native'
+import { Linking, Pressable, Image, TouchableOpacity } from 'react-native'
 
 import Colors from '@/constants/Colors'
 import { useColorScheme } from '@/components/useColorScheme'
@@ -18,6 +18,10 @@ function TabBarIcon(props: {
 export default function TabLayout() {
   const colorScheme = useColorScheme()
   const router = useRouter()
+  const openLink = (url: string) => {
+    // use Linking.openURL to open link
+    Linking.openURL(url).catch((err) => console.error('Can not open url.', err))
+  }
 
   return (
     <Tabs
@@ -45,6 +49,17 @@ export default function TabLayout() {
           title: '時刻表',
           tabBarIcon: ({ color }) => <TabBarIcon name="train" color={color} />,
           tabBarLabel: '',
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => openLink('https://www.ali-nsa.net/')}
+            >
+              <Image
+                style={{ marginRight: 25, width: 23, height: 23 }}
+                resizeMode="cover"
+                source={require('../../assets/images/web.png')}
+              />
+            </TouchableOpacity>
+          ),
         }}
       />
       <Tabs.Screen

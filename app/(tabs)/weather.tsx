@@ -31,7 +31,6 @@ async function getCWAApi(apiName: string, options: string): Promise<any> {
 }
 
 async function getWeather(setWeatherData: Function): Promise<void> {
-  console.log('nggyu')
   const manualStations = ['467530']
   const autoStations = [
     'C0M530',
@@ -102,19 +101,39 @@ export default function Weather() {
   // let imagePath = require('../../assets/images/cloudy-img.jpeg')
   let imagePath = require('../../assets/images/sunny-img.png')
 
-  switch (weather) {
-    case '陰':
-      iconPath = require('../../assets/images/cloudy.png')
-      imagePath = require('../../assets/images/cloudy-img.jpeg')
-      console.log(weather)
-      break
-    // Add more cases for other weather icons
+  const getWeatherImage = (weather: string) => {
+    switch (weather) {
+      case '陰':
+        return (imagePath = require('../../assets/images/cloudy-img.jpeg'))
 
-    default:
-      iconPath = require('../../assets/images/cloudy.png')
-      imagePath = require('../../assets/images/sunny-img.png')
-      break
+      case '多雲':
+        return (imagePath = require('../../assets/images/partly-cloudy-img.jpeg'))
+
+      case '晴':
+        return (imagePath = require('../../assets/images/sunny-img.png'))
+
+      default:
+        return (imagePath = require('../../assets/images/sunny-img.png'))
+    }
   }
+  const getWeatherIcon = (weather: string) => {
+    switch (weather) {
+      case '陰':
+        return (iconPath = require('../../assets/images/cloudy.png'))
+
+      case '多雲':
+        return (imagePath = require('../../assets/images/partly-cloudy.png'))
+
+      case '晴':
+        return (iconPath = require('../../assets/images/sunny.png'))
+
+      default:
+        return (iconPath = require('../../assets/images/sunny.png'))
+    }
+  }
+  const otherLocationWeatherData = weatherData
+    .filter((data) => data.StationId !== weatherStation)
+    .slice(0, 3) // 选择前三个不同的数据
   return (
     <View style={styles.container}>
       <Text style={styles.title}>即時天氣</Text>
@@ -179,7 +198,7 @@ export default function Weather() {
               borderRadius: 13,
             }}
             resizeMode="cover"
-            source={imagePath}
+            source={getWeatherImage(weather)}
           />
           <View style={{ flexDirection: 'row' }}>
             <View style={{ flex: 1 }}>
@@ -210,7 +229,7 @@ export default function Weather() {
                 <Image
                   style={{ width: 54, height: 54 }}
                   resizeMode="contain"
-                  source={iconPath}
+                  source={getWeatherIcon(weather)}
                 />
               </View>
               <View>
@@ -234,6 +253,33 @@ export default function Weather() {
         </View>
       )}
       <Text style={[styles.title, { top: 20 }]}>其他位置</Text>
+      <View
+        style={{
+          top: 20,
+          width: '100%',
+          height: height * 0.15,
+          flexDirection: 'row',
+          paddingHorizontal: 12,
+          justifyContent: 'center',
+          backgroundColor: 'transparent',
+        }}
+      >
+        {otherLocationWeatherData.map((data, index) => (
+          <View style={styles.otherlocation}>
+            <Image
+              style={{ width: 47, height: 47, marginVertical: 10 }}
+              resizeMode="contain"
+              source={getWeatherIcon(data.WeatherElement.Weather)}
+            />
+            <Text
+              style={{ textAlign: 'center', fontSize: 17, letterSpacing: 1,lineHeight:25 }}
+              key={index}
+            >
+              {`${data.WeatherElement.AirTemperature} °C\n${data.StationName}`}
+            </Text>
+          </View>
+        ))}
+      </View>
     </View>
   )
 }
@@ -268,5 +314,18 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
     height: 'auto',
     width: 1,
+  },
+  otherlocation: {
+    width: '30%',
+    height: '100%',
+    borderWidth: 1,
+    borderRadius: 5,
+    alignItems: 'center',
+    margin: 6,
+    shadowColor: 'rgba(0,0,0,0.25)', // Shadow color
+    shadowOpacity: 1, // Shadow opacity (0.0 to 1.0)
+    shadowOffset: { width: 1, height: 2 }, // Shadow offset (width, height)
+    shadowRadius: 4, // Shadow blur radius
+    elevation: 5, // Android shadow elevation (works on Android API level 21 and above)
   },
 })
